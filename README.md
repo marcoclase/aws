@@ -1,0 +1,2 @@
+# aws
+Scripts para AWS
