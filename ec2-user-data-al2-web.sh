@@ -1,5 +1,6 @@
 #!/bin/bash
 # Instalar Apache Web Server y PHP 
+yum -y update
 yum install -y httpd mysql php 
 # Descargar web de ejemplo
 wget https://github.com/marcoclase/aws/blob/main/ejemplo-web-tienda.zip
