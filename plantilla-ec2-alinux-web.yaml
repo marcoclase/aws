@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Plantilla para crear una instancia EC2 con acceso SSH y Apache instalado."
+
+Parameters:
+  TipoDeInstancia:
+    Description: "Tipo de instancia EC2"
+    Type: String
+    Default: "t2.micro"
+    AllowedValues:
+      - "t2.micro"
+      - "t2.small"
+      - "t2.medium"
+
+  Llave:
+    Description: "Nombre de la clave SSH para acceder a la instancia"
+    Type: AWS::EC2::KeyPair::KeyName
+
+  AMI:
+    Description: "ID de la AMI de Amazon Linux 2023"
+    Type: AWS::EC2::Image::Id
+    Default: "ami-053a45fff0a704a47"  # Reemplázala con una AMI válida en tu región
+
+Resources:
+  ServidorWeb:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: us-east-1a
+      InstanceType: !Ref TipoDeInstancia
+      KeyName: !Ref Llave
+      ImageId: !Ref AMI
+      SecurityGroups:
+        - !Ref GrupoDeSeguridadWeb
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y httpd
+          systemctl start httpd
+          systemctl enable httpd
+          echo "<h1>Bienvenido a mi Servidor Apache en AWS</h1>" > /var/www/html/index.html
+      Tags:
+        - Key: Name
+          Value: "ServidorApache"
+
+  GrupoDeSeguridadWeb:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Permite SSH y HTTP"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  InstancePublicIP:
+    Description: "IP pública de la instancia EC2"
+    Value: !GetAtt ServidorWeb.PublicIp
+
