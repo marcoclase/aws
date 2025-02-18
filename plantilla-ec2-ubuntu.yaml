@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Plantilla para crear una instancia EC2 con Ubuntu y acceso SSH."
+
+Parameters:
+  TipoDeInstancia:
+    Description: "Tipo de instancia EC2"
+    Type: String
+    Default: "t2.micro"
+    AllowedValues:
+      - "t2.micro"
+      - "t2.small"
+      - "t2.medium"
+
+  Llave:
+    Description: "Nombre de la clave SSH para acceder a la instancia"
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: "vockey"
+
+  AMI:
+    Description: "ID de la AMI de Ubuntu"
+    Type: AWS::EC2::Image::Id
+    Default: "ami-04b4f1a9cf54c11d0"  # AMI de Ubuntu 24.04 (reemplázala según tu región)
+
+Resources:
+  Servidor:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: us-east-1a
+      InstanceType: !Ref TipoDeInstancia
+      KeyName: !Ref Llave
+      ImageId: !Ref AMI
+      SecurityGroups:
+        - !Ref GrupoDeSeguridad
+      Tags:
+        - Key: Name
+          Value: "ServidorUbuntu"
+
+  GrupoDeSeguridad:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Permite acceso SSH"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  InstancePublicIP:
+    Description: "IP pública de la instancia EC2"
+    Value: !GetAtt Servidor.PublicIp
+
